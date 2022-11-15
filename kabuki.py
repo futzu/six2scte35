@@ -1,3 +1,5 @@
+#!/usr/bin/env pypy3
+
 import argparse
 import io
 import sys
@@ -12,15 +14,14 @@ class Stream2(Stream):
     CUEI_DESCRIPTOR = b"\x05\x04CUEI"
 
     def __init__(self, tsdata=None):
-        super().__init__(tsdata)
 
         self.pmt_payload = None
         self.con_pid = None
         self.out_file = None
-        self._tsdata = None
+        self.in_file = None
         self._parse_args()
-        super().__init__(tsdata)
-        print(self.out_file)
+        print(self.in_file)
+        super().__init__(self.in_file)
 
     def _parse_args(self):
         """
@@ -65,6 +66,7 @@ class Stream2(Stream):
     def _apply_args(self, args):
         if args.convert_pid and args.input:
             self.out_file = args.output
+            self.in_file = args.input
             self._tsdata = reader(args.input)
             self.con_pid2int(args.convert_pid)
         else:
@@ -79,6 +81,7 @@ class Stream2(Stream):
             self.con_pid = int(pid, 16)
         else:
             self.con_pid = int(pid)
+        print(self.con_pid)
 
     def convert_pid(self):
         """
@@ -90,15 +93,17 @@ class Stream2(Stream):
             active = io.BytesIO()
             pkt_count = 0
             chunk_size = 2048
-            with open(self.out_file, "wb") as out_file:
-                for pkt in self.iter_pkts():
-                    print(pkt)
+            #  print("hi")
+            with reader(self.in_file) as fu, open(self.out_file, "wb") as out_file:
+                for pkt in iter(partial(fu.read, self._PACKET_SIZE), b""):
+                    # print(pkt)
                     pid = self._parse_pid(pkt[1], pkt[2])
                     if pid in self.pids.tables:
                         self._parse_tables(pkt, pid)
                     if pid in self.pids.pmt:
                         if self.pmt_payload:
                             pkt = pkt[:4] + self.pmt_payload
+                            # print('PMT')
                     active.write(pkt)
                     pkt_count = (pkt_count + 1) % chunk_size
                     if not pkt_count:
@@ -193,7 +198,9 @@ class Stream2(Stream):
         npay = pay
         stream_type = pay[idx]
         el_pid = self._parse_pid(pay[idx + 1], pay[idx + 2])
+        #  print(self.con_pid,el_pid)
         if el_pid == self.con_pid:
+            print("pid match")
             if stream_type == 6:
                 npay = pay[:idx] + b"\x86" + pay[idx + 1 :]
         ei_len = self._parse_length(pay[idx + 3], pay[idx + 4])
