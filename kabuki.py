@@ -66,7 +66,7 @@ class Stream2(Stream):
         if args.convert_pid and args.input:
             self.out_file = args.output
             self._tsdata = reader(args.input)
-            self.con_pid = self.con_pid2int(args.convert_pid)
+            self.con_pid2int(args.convert_pid)
         else:
             print(" input file and pid to convert are required. run kabuki -h")
             sys.exit()
