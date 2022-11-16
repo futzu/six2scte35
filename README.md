@@ -12,7 +12,11 @@ Input #0, mpegts, from 'tested2.ts':
       service_name    : Service01
       service_provider: FFmpeg
       
+      
+      
   Stream #0:0[0x100]: Data: bin_data ([6][0][0][0] / 0x0006)         <-- Boo, hiss.
+  
+  
   
   Stream #0:1[0x101]: Video: mpeg2video (Main) ([2][0][0][0] / 0x0002), yuv420p(tv, bt470bg, top first), 1280x720 [SAR 1:1 DAR 16:9], 8000 kb/s, 50 fps, 50 tbr, 90k tbn
     Side data:
@@ -36,8 +40,12 @@ Input #0, mpegts, from 'tested3.ts':
     Metadata:
       service_name    : Service01
       service_provider: FFmpeg
+  
+  
       
-  Stream #0:0[0x100]: Data: scte_35                                 <-- Boom.
+  Stream #0:0[0x100]: Data: scte_35                                 <--      Boom << Boom.
+  
+  
   
   Stream #0:1[0x101]: Video: mpeg2video (Main) ([2][0][0][0] / 0x0002), yuv420p(tv, bt470bg, top first), 1280x720 [SAR 1:1 DAR 16:9], 8000 kb/s, 50 fps, 50 tbr, 90k tbn
     Side data:
