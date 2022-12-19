@@ -73,6 +73,8 @@ class Stream2(Stream):
             print(" input file and pid to convert are required. run kabuki -h")
             sys.exit()
 
+
+
     def iter_pkts(self):
         return iter(partial(self._tsdata.read, self._PACKET_SIZE), b"")
 
@@ -89,27 +91,26 @@ class Stream2(Stream):
         for piping into another program like mplayer.
         SCTE-35 cues are printed to stderr.
         """
-        if self._find_start():
-            active = io.BytesIO()
-            pkt_count = 0
-            chunk_size = 2048
-            #  print("hi")
-            with reader(self.in_file) as fu, open(self.out_file, "wb") as out_file:
-                for pkt in iter(partial(fu.read, self._PACKET_SIZE), b""):
-                    # print(pkt)
-                    pid = self._parse_pid(pkt[1], pkt[2])
-                    if pid in self.pids.tables:
-                        self._parse_tables(pkt, pid)
-                    if pid in self.pids.pmt:
-                        if self.pmt_payload:
-                            pkt = pkt[:4] + self.pmt_payload
-                            # print('PMT')
-                    active.write(pkt)
-                    pkt_count = (pkt_count + 1) % chunk_size
-                    if not pkt_count:
-                        out_file.write(active.getbuffer())
-                        active = io.BytesIO()
-                out_file.write(active.getbuffer())
+        active = io.BytesIO()
+        pkt_count = 0
+        chunk_size = 2048
+        #  print("hi")
+        with  open(self.out_file, "wb") as out_file:
+            for pkt in self._find_start():
+                # print(pkt)
+                pid = self._parse_pid(pkt[1], pkt[2])
+                if pid in self.pids.tables:
+                    self._parse_tables(pkt, pid)
+                if pid in self.pids.pmt:
+                    if self.pmt_payload:
+                        pkt = pkt[:4] + self.pmt_payload
+                        # print('PMT')
+                active.write(pkt)
+                pkt_count = (pkt_count + 1) % chunk_size
+                if not pkt_count:
+                    out_file.write(active.getbuffer())
+                    active = io.BytesIO()
+            out_file.write(active.getbuffer())
 
     def _regen_pmt(self, n_seclen, pcr_pid, n_proginfolen, n_info_bites, n_streams):
         nbin = NBin()
@@ -139,7 +140,7 @@ class Stream2(Stream):
             n_payload = pointer_field + n_payload + (b"\xff" * pad)
         self.pmt_payload = n_payload
 
-    def _program_map_table(self, pay, pid):
+    def _parse_pmt(self, pay, pid):
         """
         parse program maps for streams
         """
@@ -148,7 +149,7 @@ class Stream2(Stream):
             return False
         seclen = self._parse_length(pay[1], pay[2])
         n_seclen = seclen + 6
-        if not self._section_done(pay, pid, seclen):
+        if  self._section_incomplete(pay, pid, seclen):
             return False
         program_number = self._parse_program(pay[3], pay[4])
         pcr_pid = self._parse_pid(pay[8], pay[9])
@@ -186,7 +187,7 @@ class Stream2(Stream):
             idx += chunk_size
             idx += ei_len
             self.maps.pid_prgm[pid] = program_number
-            self._chk_pid_stream_type(pid, stream_type)
+            self._set_scte35_pids(pid, stream_type)
         # crc = pay[idx : idx + 4]
         streams = pay[start:end_idx]
         return streams
@@ -206,8 +207,3 @@ class Stream2(Stream):
         ei_len = self._parse_length(pay[idx + 3], pay[idx + 4])
         return npay, stream_type, el_pid, ei_len
 
-
-if __name__ == "__main__":
-
-    s = Stream2()
-    s.convert_pid()
