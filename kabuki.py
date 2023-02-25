@@ -101,6 +101,9 @@ class Kabuki(Stream):
         self._apply_args(args)
 
     def _apply_args(self, args):
+        if args.version:
+            to_stderr(version())
+            sys.exit()
         if args.convert_pid:
             self.out_file = args.output
             self.in_file = args.input
