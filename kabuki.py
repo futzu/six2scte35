@@ -10,7 +10,45 @@ from threefive.crc import crc32
 from bitn import NBin
 
 
-class Stream2(Stream):
+MAJOR = "0"
+MINOR = "0"
+MAINTAINENCE = "3"
+
+
+def version():
+    """
+    version prints version as a string
+
+    Odd number versions are releases.
+    Even number versions are testing builds between releases.
+
+    Used to set version in setup.py
+    and as an easy way to check which
+    version you have installed.
+
+    """
+    return f"{MAJOR}.{MINOR}.{MAINTAINENCE}"
+
+
+def version_number():
+    """
+    version_number returns version as an int.
+    if version() returns 2.3.01
+    version_number will return 2301
+    """
+    return int(f"{MAJOR}{MINOR}{MAINTAINENCE}")
+
+
+def to_stderr(data):
+    """
+    print to sys.stderr.buffer aka 2
+    """
+    print(data, file=sys.stderr)
+
+
+
+
+class Kabuki(Stream):
     CUEI_DESCRIPTOR = b"\x05\x04CUEI"
 
     def __init__(self, tsdata=None):
@@ -18,10 +56,9 @@ class Stream2(Stream):
         self.pmt_payload = None
         self.con_pid = None
         self.out_file = None
-        self.in_file = None
+        self.in_file = sys.stdin.buffer
         self._parse_args()
-        print(self.in_file)
-        super().__init__(self.in_file)
+        super().__init__(self._tsdata)
 
     def _parse_args(self):
         """
@@ -31,7 +68,7 @@ class Stream2(Stream):
         parser.add_argument(
             "-i",
             "--input",
-            default=None,
+            default=sys.stdin.buffer,
             help=""" Input source, like "/home/a/vid.ts"
                                     or "udp://@235.35.3.5:3535"
                                     or "https://futzu.com/xaa.ts"
@@ -41,7 +78,7 @@ class Stream2(Stream):
         parser.add_argument(
             "-o",
             "--output",
-            default="0x6to0x86.ts",
+            default=sys.stdout.buffer,
             help="""Output file """,
         )
 
@@ -64,16 +101,14 @@ class Stream2(Stream):
         self._apply_args(args)
 
     def _apply_args(self, args):
-        if args.convert_pid and args.input:
+        if args.convert_pid:
             self.out_file = args.output
             self.in_file = args.input
             self._tsdata = reader(args.input)
             self.con_pid2int(args.convert_pid)
         else:
-            print(" input file and pid to convert are required. run kabuki -h")
+            to_stderr(" A pid to convert is required. run kabuki -h")
             sys.exit()
-
-
 
     def iter_pkts(self):
         return iter(partial(self._tsdata.read, self._PACKET_SIZE), b"")
@@ -83,7 +118,7 @@ class Stream2(Stream):
             self.con_pid = int(pid, 16)
         else:
             self.con_pid = int(pid)
-        print(self.con_pid)
+        to_stderr(self.con_pid)
 
     def convert_pid(self):
         """
@@ -94,23 +129,26 @@ class Stream2(Stream):
         active = io.BytesIO()
         pkt_count = 0
         chunk_size = 2048
-        #  print("hi")
-        with  open(self.out_file, "wb") as out_file:
+        #  to_stderr("hi")
+        if isinstance(self.out_file, str):
+                self.out_file = open(self.out_file, "wb")
+        with self.out_file as out_file:
             for pkt in self._find_start():
-                # print(pkt)
+            # to_stderr(pkt)
                 pid = self._parse_pid(pkt[1], pkt[2])
                 if pid in self.pids.tables:
                     self._parse_tables(pkt, pid)
                 if pid in self.pids.pmt:
                     if self.pmt_payload:
                         pkt = pkt[:4] + self.pmt_payload
-                        # print('PMT')
+                        # to_stderr('PMT')
                 active.write(pkt)
                 pkt_count = (pkt_count + 1) % chunk_size
                 if not pkt_count:
                     out_file.write(active.getbuffer())
                     active = io.BytesIO()
-            out_file.write(active.getbuffer())
+                #out_file.write(active.getbuffer())
+
 
     def _regen_pmt(self, n_seclen, pcr_pid, n_proginfolen, n_info_bites, n_streams):
         nbin = NBin()
@@ -199,11 +237,14 @@ class Stream2(Stream):
         npay = pay
         stream_type = pay[idx]
         el_pid = self._parse_pid(pay[idx + 1], pay[idx + 2])
-        #  print(self.con_pid,el_pid)
+        #  to_stderr(self.con_pid,el_pid)
         if el_pid == self.con_pid:
-            print("pid match")
+            to_stderr("pid match")
             if stream_type == 6:
                 npay = pay[:idx] + b"\x86" + pay[idx + 1 :]
         ei_len = self._parse_length(pay[idx + 3], pay[idx + 4])
         return npay, stream_type, el_pid, ei_len
 
+if __name__ == '__main__':
+    kab=Kabuki()
+    kab.convert_pid()
