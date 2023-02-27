@@ -48,7 +48,7 @@ def to_stderr(data):
 
 
 
-class Kabuki(Stream):
+class Six2SCTE35(Stream):
     CUEI_DESCRIPTOR = b"\x05\x04CUEI"
 
     def __init__(self, tsdata=None):
@@ -249,5 +249,5 @@ class Kabuki(Stream):
         return npay, stream_type, el_pid, ei_len
 
 if __name__ == '__main__':
-    kab=Kabuki()
-    kab.convert_pid()
+    s2s=Six2SCTE35()
+    s2s.convert_pid()
