@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+from six2scte35 import Six2SCTE35
+
+if __name__ == '__main__':
+    s2s=Six2SCTE35()
+    s2s.convert_pid()
