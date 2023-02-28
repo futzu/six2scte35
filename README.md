@@ -19,7 +19,7 @@ Input #0, mpegts, from 'tested2.ts':
 ```
 ### `six2scte35`
 ```lua
-a@debian:~/bfm/mo$ ./six2scte35.py -i tested2.ts -p 256 -o tested3.ts
+a@debian:~/bfm/mo$ six2scte35 -i tested2.ts -p 256 -o tested3.ts
 ```
 ### `after`
 ```lua
@@ -34,10 +34,42 @@ Input #0, mpegts, from 'tested3.ts':
   Stream #0:2[0x102]: Audio: mp1 ([6][0][0][0] / 0x0006), 48000 Hz, stereo, s16p, 256 kb/s
 
 ```
+## `Install`
+```js
+pypy3 -mpip install six2scte35
+
+# and / or 
+python3 -mpip install six2scte35
+```
+
+ <i>pip installs the executable script <b>six2scte35</b> as well as the module <b>six2scte35</b></i>
+
+___
+## Usage:
+```lua
+a@debian:~/bfm$ six2scte35 -h
+usage: six2scte35 [-h] [-i INPUT] [-o OUTPUT] [-p CONVERT_PID] [-v]
+
+options:
+  -h, --help            show this help message and exit
+  
+  -i INPUT, --input INPUT
+                        Input source, like "/home/a/vid.ts" or
+                        "udp://@235.35.3.5:3535" or "https://futzu.com/xaa.ts"
+                        default is sys.stdin.buffer
+                        
+  -o OUTPUT, --output OUTPUT
+                        Output file, default is sys.stdout.buffer
+                        
+  -p CONVERT_PID, --convert_pid CONVERT_PID
+                        Pid to change to type 0x86 (SCTE-35)
+                        
+  -v, --version         Show version
+```
 ### Version 0.0.3 adds pipe support
 
 ```js
-a@debian:~$ pypy3 six2scte35.py -v
+a@debian:~$  six2scte35 -v
 0.0.3
 a@debian:~$ 
 
@@ -64,7 +96,7 @@ a@debian:~$
 ```
 * then I ran this command 
 ```js
-a@debian:~$ cat pv.ts | pypy3 six2scte35.py -p 0x105 | ffplay -hide_banner  -
+a@debian:~$ cat pv.ts | six2scte35 -p 0x105 | ffplay -hide_banner  -
 ```
 
 * output 
@@ -88,7 +120,7 @@ Input #0, mpegts, from 'pipe:':    0KB vq=    0KB sq=    0B f=0/0
 
 *  to write to a file 
 ```js
-a@debian:~$ cat pv.ts | pypy3 six2scte352.py -p 0x105 -o kout.ts
+a@debian:~$ cat pv.ts | six2scte352 -p 0x105 -o kout.ts
 261
 pid match
 ```
@@ -111,7 +143,7 @@ Unsupported codec with id 98305 for input stream 5
 
 * so you can do something like 
 ```js
- ffmpeg -i  mpegts/pcrvid.ts -map 0 -c copy -f mpegts - | pypy3 six2scte35.py -p 0x105 | ffplay  -
+ ffmpeg -i  mpegts/pcrvid.ts -map 0 -c copy -f mpegts - | six2scte35 -p 0x105 | ffplay  -
 
 ```
 
