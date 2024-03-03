@@ -49,6 +49,7 @@ def to_stderr(data):
 
 
 class Six2SCTE35(Stream):
+    _PMT_TID = b"\x02"
     CUEI_DESCRIPTOR = b"\x05\x04CUEI"
 
     def __init__(self, tsdata=None):
@@ -136,7 +137,7 @@ class Six2SCTE35(Stream):
         if isinstance(self.out_file, str):
                 self.out_file = open(self.out_file, "wb")
         with self.out_file as out_file:
-            for pkt in self._find_start():
+            for pkt in self.iter_pkts():
             # to_stderr(pkt)
                 pid = self._parse_pid(pkt[1], pkt[2])
                 if pid in self.pids.tables:
