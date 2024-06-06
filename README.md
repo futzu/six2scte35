@@ -1,5 +1,8 @@
 # `six2scte35`
-##### _six2scte35 requires threefive version >= 2.3.65_ 
+### Latest version is `0.0.5` 
+* `fixed` bitn import error
+* `fixed` find_start error
+* `updated` to threefive 2.4.39
 
 ### ffmpeg changes SCTE-35 stream type from 0x86 to 0x6
 ### six2scte35 changes it back.
