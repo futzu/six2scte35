@@ -19,8 +19,8 @@ setuptools.setup(
     scripts=["bin/six2scte35"],
     platforms="all",
     install_requires=[
-        "threefive >= 2.3.69",
-        "new_reader >= 0.1.3",
+        "threefive >= 2.4.39",
+        "new_reader >= 0.1.9",
     ],
     classifiers=[
         "License :: OSI Approved :: MIT License",
