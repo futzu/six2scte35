@@ -7,7 +7,7 @@ from functools import partial
 from new_reader import reader
 from threefive import Stream
 from threefive.crc import crc32
-from bitn import NBin
+from threefive.bitn import NBin
 
 
 MAJOR = "0"
