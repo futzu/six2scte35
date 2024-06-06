@@ -1,4 +1,4 @@
-#!/usr/bin/env pypy3
+#!/usr/bin/env python3
 
 import argparse
 import io
@@ -12,7 +12,7 @@ from bitn import NBin
 
 MAJOR = "0"
 MINOR = "0"
-MAINTAINENCE = "3"
+MAINTAINENCE = "5"
 
 
 def version():
@@ -49,7 +49,6 @@ def to_stderr(data):
 
 
 class Six2SCTE35(Stream):
-    _PMT_TID = b"\x02"
     CUEI_DESCRIPTOR = b"\x05\x04CUEI"
 
     def __init__(self, tsdata=None):
