@@ -47,6 +47,15 @@ python3 -mpip install six2scte35
 
  <i>pip installs the executable script <b>six2scte35</b> as well as the module <b>six2scte35</b></i>
 
+## Heads up! upgrade threefive to  `2`.`4`.`55`
+```js
+python3 -mpip install --upgrade threefive
+```
+* and / or 
+```js
+pypy3 -mpip install --upgrade threefive
+```
+
 ___
 ## Usage:
 ```lua
